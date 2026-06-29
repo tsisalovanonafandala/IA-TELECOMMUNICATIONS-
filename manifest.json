@@ -1,0 +1,16 @@
+{
+  "name": "IA Telecommunication",
+  "short_name": "IA Telecom",
+  "description": "Assistant IA pour les cours de Telecommunication",
+  "start_url": "/IA-TELECOMMUNICATIONS-/",
+  "scope": "/IA-TELECOMMUNICATIONS-/",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#22d3ee",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
