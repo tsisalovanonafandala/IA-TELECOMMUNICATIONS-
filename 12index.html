@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#22d3ee"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="IA Telecom"/>
+<title>IA Telecommunication</title>
+<style>
+:root{--bg:#05080f;--panel:#0e1626;--panel2:#121b2e;--border:#1b2738;--cyan:#22d3ee;--text:#e6eaf2;--muted:#7c8aa0;--red:#f87171;--green:#4ade80;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+body{display:flex;justify-content:center;}
+.app{width:100%;max-width:760px;display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.top-bar{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;flex-shrink:0;}
+.hamburger{background:none;border:none;color:var(--text);cursor:pointer;padding:6px;display:flex;flex-direction:column;gap:4px;}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;}
+.title-box{flex:1;border:2px solid var(--cyan);border-radius:14px;padding:7px 14px;text-align:center;box-shadow:0 0 14px rgba(34,211,238,.12);}
+.title-box h1{font-size:14px;font-weight:900;letter-spacing:.08em;}
+.title-box h1 span{color:var(--cyan);}
+.title-box p{font-size:10px;color:var(--muted);margin-top:2px;}
+.modes-bar{display:flex;gap:2px;padding:4px 14px 6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.modes-bar::-webkit-scrollbar{display:none;}
+.mode-btn{border:none;background:var(--panel);color:var(--muted);font-size:11px;padding:5px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);}
+.mode-btn.active{background:var(--cyan);color:var(--bg);border-color:var(--cyan);}
+.chat-area{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);}
+.empty-state p{font-size:13px;}
+.msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55;word-wrap:break-word;}
+.msg.user{background:var(--cyan);color:#000;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500;}
+.msg.ai{background:var(--panel);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px;}
+.msg.ai .ai-label{font-size:10px;color:var(--cyan);font-weight:700;margin-bottom:4px;display:block;}
+.msg.error{background:#1a0a0a;border:1px solid var(--red);color:var(--red);align-self:flex-start;border-radius:14px;padding:10px 13px;}
+.typing{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;padding:12px 16px;display:flex;gap:5px;}
+.typing span{width:7px;height:7px;background:var(--muted);border-radius:50%;animation:bounce .9s infinite;}
+.typing span:nth-child(2){animation-delay:.15s;}
+.typing span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-6px);}}
+.email-gate{margin:12px 14px;background:var(--panel);border:1.5px solid var(--cyan);border-radius:16px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;}
+.email-gate.hidden{display:none!important;}
+.email-gate h3{font-size:15px;font-weight:700;}
+.email-gate p{font-size:12px;color:var(--muted);}
+.email-gate input{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);background:#0a1322;color:var(--text);font-size:14px;outline:none;}
+.email-gate input:focus{border-color:var(--cyan);}
+.email-gate button{width:100%;padding:12px;border-radius:10px;border:none;background:var(--cyan);color:#000;font-size:14px;font-weight:800;cursor:pointer;}
+.email-err{font-size:12px;color:var(--red);display:none;}
+.input-area{padding:8px 14px 14px;flex-shrink:0;}
+.input-row{display:flex;gap:8px;align-items:flex-end;background:var(--panel);border:1.5px solid var(--border);border-radius:24px;padding:8px 8px 8px 14px;}
+.input-row textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;resize:none;max-height:120px;min-height:22px;line-height:1.5;font-family:inherit;}
+.input-row textarea::placeholder{color:var(--muted);}
+.send-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--cyan);color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.send-btn:disabled{opacity:.35;cursor:default;}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;}
+.sidebar-overlay.open{display:block;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;background:var(--panel);border-right:1px solid var(--border);z-index:101;transform:translateX(-100%);transition:transform .25s;display:flex;flex-direction:column;padding:20px 16px;}
+.sidebar.open{transform:translateX(0);}
+.sidebar-title{font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:16px;}
+.sidebar-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:none;background:none;color:var(--text);font-size:13px;cursor:pointer;width:100%;text-align:left;}
+.sidebar-btn:hover{background:var(--panel2);}
+.sep{height:1px;background:var(--border);margin:8px 0;}
+.sidebar-info{padding:10px 12px;font-size:12px;color:var(--muted);}
+.sidebar-info strong{display:block;color:var(--text);font-size:13px;margin-bottom:2px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--panel);border:1.5px solid var(--border);border-radius:18px;width:100%;max-width:480px;padding:20px;margin:auto;}
+.modal h2{font-size:16px;font-weight:800;color:var(--cyan);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.form-lbl{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:700;margin-top:14px;}
+.form-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:#0a1322;color:var(--text);font-size:13px;outline:none;font-family:inherit;}
+.form-input:focus{border-color:var(--cyan);}
+.btn{padding:10px 16px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-cyan{background:var(--cyan);color:#000;}
+.btn-ghost{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+.key-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel2);border-radius:8px;margin-bottom:6px;font-size:12px;}
+.key-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--green);font-family:monospace;}
+.key-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;}
+.user-item{padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);}
+.hidden{display:none!important;}
+pre{white-space:pre-wrap;font-family:inherit;}
+.footer{text-align:center;font-size:10px;color:var(--muted);padding:4px 0 8px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <button class="hamburger" id="menuBtn"><span></span><span></span><span></span></button>
+    <div class="title-box">
+      <h1><span>IA</span> TELECOMMUNICATION</h1>
+      <p>Cette IA peut vous répondre dans tous les domaines</p>
+    </div>
+  </div>
+
+  <div class="modes-bar">
+    <button class="mode-btn active" data-mode="cours">📚 Cours</button>
+    <button class="mode-btn" data-mode="revision">✏️ Révision</button>
+    <button class="mode-btn" data-mode="assistant">⚡ Assistant</button>
+    <button class="mode-btn" data-mode="quiz">🧪 Quiz</button>
+    <button class="mode-btn" data-mode="strict">🎯 Strict</button>
+    <button class="mode-btn" data-mode="fun">😄 Fun</button>
+  </div>
+
+  <div class="email-gate" id="emailGate">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    <h3>Entrez votre email pour commencer</h3>
+    <p>Pas de mot de passe — juste pour garder votre historique</p>
+    <input type="email" id="emailInput" placeholder="votre@email.com"/>
+    <button id="emailBtn">Continuer</button>
+    <span class="email-err" id="emailErr"></span>
+  </div>
+
+  <div class="chat-area" id="chatArea">
+    <div class="empty-state" id="emptyState">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <p>Posez votre question</p>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="msgInput" placeholder="Posez votre question..." rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="footer">Tsisalovanona Fandala &nbsp;·&nbsp; UDI</div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-title">⚡ IA TELECOM</div>
+  <div class="sidebar-info">
+    <strong id="sidebarEmail">Aucun compte</strong>
+    <span id="sidebarStatus">Non connecté</span>
+  </div>
+  <div class="sep"></div>
+  <button class="sidebar-btn" id="newChatBtn">🗑️ Nouvelle conversation</button>
+  <button class="sidebar-btn hidden" id="adminBtn">⚙️ Panel Admin</button>
+  <div class="sep"></div>
+  <button class="sidebar-btn" id="changeAccBtn">🔄 Changer de compte</button>
+</div>
+
+<!-- ADMIN -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <h2>⚙️ Panel Admin <button class="modal-close" id="adminClose">×</button></h2>
+
+    <label class="form-lbl">🔑 Clés Groq API</label>
+    <div id="keysList"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <input class="form-input" type="text" id="newKeyInput" placeholder="gsk_..." style="flex:1"/>
+      <button class="btn btn-cyan" id="addKeyBtn">+ Ajouter</button>
+    </div>
+
+    <div class="sep" style="margin-top:16px;"></div>
+    <label class="form-lbl">👥 Utilisateurs</label>
+    <div id="usersList"><p class="user-item">Chargement...</p></div>
+
+    <div class="sep" style="margin-top:16px;"></div>
+    <label class="form-lbl">📢 Message à tous</label>
+    <textarea class="form-input" id="broadcastInput" rows="3" placeholder="Message broadcast..."></textarea>
+    <button class="btn btn-cyan" id="broadcastBtn" style="margin-top:8px;width:100%;">Envoyer à tous</button>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:            "AIzaSyA6yOefs10hhtKVFLDpgLB_2SoM3DVp8l8",
+  authDomain:        "ia-telecom-558bd.firebaseapp.com",
+  projectId:         "ia-telecom-558bd",
+  storageBucket:     "ia-telecom-558bd.firebasestorage.app",
+  messagingSenderId: "366337225206",
+  appId:             "1:366337225206:web:478a46e1d3ddb01230d7d7"
+});
+const db = getFirestore(app);
+window._db = db;
+window._fs = { collection, doc, getDoc, getDocs, setDoc, addDoc, query, orderBy, serverTimestamp };
+window._dbOK = true;
+window.dispatchEvent(new Event("db-ready"));
+</script>
+
+<script>
+const ADMIN    = "tsisalovanonafandala@gmail.com";
+const EKEY     = "iaTelecomEmail_v2";
+const MODES    = {
+  cours:    "Tu es un professeur expert en télécommunications. Explique de façon claire, structurée et pédagogique. Utilise des exemples concrets.",
+  revision: "Tu es un assistant de révision. Aide à mémoriser, résume les points clés, pose des questions de contrôle.",
+  assistant:"Tu es un assistant IA polyvalent et intelligent. Réponds à TOUTES les questions clairement et utilement, comme Claude d'Anthropic.",
+  quiz:     "Tu es un examinateur. Génère des QCM ou questions ouvertes sur le sujet, puis corrige les réponses.",
+  strict:   "Tu es un professeur strict. Réponds uniquement aux sujets liés aux télécommunications et à l'ingénierie.",
+  fun:      "Tu es un assistant sympa et décontracté. Explique avec humour et exemples de la vie quotidienne."
+};
+
+let email    = localStorage.getItem(EKEY) || "";
+let mode     = "cours";
+let groqKeys = [];
+let kidx     = 0;
+let busy     = false;
+let msgs     = [];
+
+const $ = id => document.getElementById(id);
+const emailGate = $("emailGate");
+const emailInp  = $("emailInput");
+const emailBtn  = $("emailBtn");
+const emailErr  = $("emailErr");
+const chatArea  = $("chatArea");
+const emptyState= $("emptyState");
+const msgInp    = $("msgInput");
+const sendBtn   = $("sendBtn");
+const menuBtn   = $("menuBtn");
+const sidebar   = $("sidebar");
+const sidebarOv = $("sidebarOverlay");
+const sidebarEmail = $("sidebarEmail");
+const sidebarStatus= $("sidebarStatus");
+const adminBtn  = $("adminBtn");
+const newChatBtn= $("newChatBtn");
+const changeAccBtn=$("changeAccBtn");
+const adminModal= $("adminModal");
+const adminClose= $("adminClose");
+const keysList  = $("keysList");
+const newKeyInp = $("newKeyInput");
+const addKeyBtn = $("addKeyBtn");
+const usersList = $("usersList");
+const broadcastInp=$("broadcastInput");
+const broadcastBtn=$("broadcastBtn");
+
+// ── UI ──
+function updateUI(){
+  if(email){
+    emailGate.classList.add("hidden");
+    sidebarEmail.textContent = email;
+    sidebarStatus.textContent = "Connecté ✓";
+    sendBtn.disabled = false;
+    adminBtn.classList.toggle("hidden", email.toLowerCase() !== ADMIN.toLowerCase());
+    saveUser();
+  } else {
+    emailGate.classList.remove("hidden");
+    sidebarEmail.textContent = "Aucun compte";
+    sidebarStatus.textContent = "Non connecté";
+    sendBtn.disabled = true;
+    adminBtn.classList.add("hidden");
+  }
+}
+updateUI();
+
+// ── EMAIL ──
+emailBtn.onclick = () => {
+  const v = emailInp.value.trim();
+  emailErr.style.display = "none";
+  if(!v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
+    emailErr.textContent = "Email invalide.";
+    emailErr.style.display = "block";
+    return;
+  }
+  email = v;
+  localStorage.setItem(EKEY, v);
+  updateUI();
+};
+emailInp.onkeydown = e => { if(e.key==="Enter") emailBtn.click(); };
+
+// ── SIDEBAR ──
+menuBtn.onclick = () => { sidebar.classList.add("open"); sidebarOv.classList.add("open"); };
+function closeSidebar(){ sidebar.classList.remove("open"); sidebarOv.classList.remove("open"); }
+sidebarOv.onclick = closeSidebar;
+newChatBtn.onclick = () => { msgs=[]; chatArea.innerHTML=""; chatArea.appendChild(emptyState); emptyState.classList.remove("hidden"); closeSidebar(); };
+changeAccBtn.onclick = () => { localStorage.removeItem(EKEY); email=""; updateUI(); closeSidebar(); };
+
+// ── MODES ──
+document.querySelectorAll(".mode-btn").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll(".mode-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    mode = b.dataset.mode;
+  };
+});
+
+// ── ADMIN ──
+adminBtn.onclick = () => { closeSidebar(); openAdmin(); };
+adminClose.onclick = () => adminModal.classList.remove("open");
+adminModal.onclick = e => { if(e.target===adminModal) adminModal.classList.remove("open"); };
+
+function openAdmin(){
+  adminModal.classList.add("open");
+  renderKeys();
+  loadUsers();
+}
+
+// ── CLÉS ──
+async function loadGroqKeys(){
+  if(!window._dbOK) return;
+  try{
+    const { doc, getDoc } = window._fs;
+    const snap = await getDoc(doc(window._db,"config","groq_keys"));
+    if(snap.exists()) groqKeys = (snap.data().keys||[]).filter(k=>k&&k.length>5);
+  }catch(e){ console.warn("loadGroqKeys:",e); }
+}
+
+function renderKeys(){
+  keysList.innerHTML = "";
+  if(!groqKeys.length){ keysList.innerHTML='<p style="font-size:12px;color:var(--muted);padding:8px 0;">Aucune clé. Ajoutez-en une.</p>'; return; }
+  groqKeys.forEach((k,i)=>{
+    const d=document.createElement("div"); d.className="key-item";
+    d.innerHTML=`<span class="key-text">${k.slice(0,10)}...${k.slice(-5)}</span><button class="key-del" onclick="delKey(${i})">🗑️</button>`;
+    keysList.appendChild(d);
+  });
+}
+
+addKeyBtn.onclick = async () => {
+  const k = newKeyInp.value.trim();
+  if(!k||k.length<8){ alert("Clé trop courte."); return; }
+  groqKeys.push(k); newKeyInp.value="";
+  await saveKeys(); renderKeys();
+};
+
+window.delKey = async i => { groqKeys.splice(i,1); await saveKeys(); renderKeys(); };
+
+async function saveKeys(){
+  if(!window._dbOK) return;
+  try{
+    const { doc, setDoc } = window._fs;
+    await setDoc(doc(window._db,"config","groq_keys"),{keys:groqKeys});
+  }catch(e){ alert("Erreur save: "+e.message); }
+}
+
+// ── UTILISATEURS ──
+async function saveUser(){
+  if(!window._dbOK||!email) return;
+  try{
+    const { doc, setDoc, serverTimestamp } = window._fs;
+    await setDoc(doc(window._db,"users",email),{email,lastSeen:serverTimestamp()},{merge:true});
+  }catch(e){}
+}
+
+async function loadUsers(){
+  usersList.innerHTML='<p class="user-item">Chargement...</p>';
+  if(!window._dbOK){ usersList.innerHTML='<p class="user-item">Firebase non disponible.</p>'; return; }
+  try{
+    const { collection, getDocs, query, orderBy } = window._fs;
+    const snap = await getDocs(query(collection(window._db,"users"),orderBy("lastSeen","desc")));
+    usersList.innerHTML="";
+    if(snap.empty){ usersList.innerHTML='<p class="user-item">Aucun utilisateur.</p>'; return; }
+    snap.forEach(d=>{ const p=document.createElement("p"); p.className="user-item"; p.textContent=d.data().email; usersList.appendChild(p); });
+  }catch(e){ usersList.innerHTML='<p class="user-item">Erreur: '+e.message+'</p>'; }
+}
+
+// ── BROADCAST ──
+broadcastBtn.onclick = async () => {
+  const msg = broadcastInp.value.trim();
+  if(!msg) return;
+  if(!window._dbOK){ alert("Firebase non disponible."); return; }
+  try{
+    const { collection, addDoc, serverTimestamp } = window._fs;
+    await addDoc(collection(window._db,"broadcasts"),{message:msg,date:serverTimestamp()});
+    broadcastInp.value=""; alert("✅ Message envoyé !");
+  }catch(e){ alert("Erreur: "+e.message); }
+};
+
+// ── INPUT ──
+msgInp.oninput = () => { msgInp.style.height="auto"; msgInp.style.height=Math.min(msgInp.scrollHeight,120)+"px"; };
+msgInp.onkeydown = e => { if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } };
+sendBtn.onclick = send;
+
+// ── CHAT ──
+function addMsg(role, text){
+  emptyState.classList.add("hidden");
+  const d = document.createElement("div");
+  d.className = "msg "+role;
+  if(role==="ai"){
+    d.innerHTML = `<span class="ai-label">IA TELECOM</span><pre>${esc(text)}</pre>`;
+  } else if(role==="error"){
+    d.innerHTML = "⚠️ "+esc(text);
+  } else {
+    d.textContent = text;
+  }
+  chatArea.appendChild(d);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function showTyping(){
+  emptyState.classList.add("hidden");
+  const d=document.createElement("div"); d.className="typing"; d.id="typing";
+  d.innerHTML="<span></span><span></span><span></span>";
+  chatArea.appendChild(d); chatArea.scrollTop=chatArea.scrollHeight;
+}
+function hideTyping(){ const t=$("typing"); if(t) t.remove(); }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+async function send(){
+  if(busy||!email) return;
+  const text = msgInp.value.trim();
+  if(!text) return;
+  msgInp.value=""; msgInp.style.height="auto";
+  addMsg("user", text);
+  msgs.push({role:"user", content:text});
+
+  if(!groqKeys.length){
+    addMsg("error","Aucune clé Groq configurée. Ouvrez le menu → Panel Admin → ajoutez une clé Groq.");
+    return;
+  }
+
+  busy=true; sendBtn.disabled=true; showTyping();
+
+  try{
+    const reply = await callGroq(MODES[mode]||MODES.assistant, msgs);
+    hideTyping();
+    addMsg("ai", reply);
+    msgs.push({role:"assistant", content:reply});
+    saveConv(text, reply);
+  }catch(e){
+    hideTyping();
+    addMsg("error", e.message||"Erreur réseau. Vérifiez votre connexion.");
+  }
+
+  busy=false; sendBtn.disabled=false;
+}
+
+async function callGroq(system, history){
+  const total = groqKeys.length;
+  for(let i=0; i<total; i++){
+    const key = groqKeys[kidx % total]; kidx++;
+    try{
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+        body:JSON.stringify({
+          model:"llama3-70b-8192",
+          messages:[{role:"system",content:system},...history.slice(-12)],
+          max_tokens:1500,
+          temperature:0.7
+        })
+      });
+      if(!res.ok){
+        const err=await res.json().catch(()=>({}));
+        if(res.status===429||res.status===401) continue;
+        throw new Error(err.error?.message||"Erreur "+res.status);
+      }
+      const data=await res.json();
+      return data.choices[0].message.content;
+    }catch(e){
+      if(i===total-1) throw e;
+    }
+  }
+  throw new Error("Toutes les clés Groq sont épuisées.");
+}
+
+async function saveConv(u, a){
+  if(!window._dbOK||!email) return;
+  try{
+    const { collection, addDoc, serverTimestamp } = window._fs;
+    await addDoc(collection(window._db,"conversations"),{email,userMessage:u,aiMessage:a,mode,date:serverTimestamp()});
+  }catch(e){}
+}
+
+// ── INIT ──
+window.addEventListener("db-ready", loadGroqKeys);
+if(window._dbOK) loadGroqKeys();
+</script>
+</body>
+</html>
