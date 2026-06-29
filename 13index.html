@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#22d3ee"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="IA Telecom"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>IA Telecommunication</title>
+<style>
+:root{--bg:#05080f;--panel:#0e1626;--panel2:#121b2e;--border:#1b2738;--cyan:#22d3ee;--text:#e6eaf2;--muted:#7c8aa0;--red:#f87171;--green:#4ade80;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+body{display:flex;justify-content:center;}
+.app{width:100%;max-width:760px;display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.top-bar{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;flex-shrink:0;}
+.hamburger{background:none;border:none;color:var(--text);cursor:pointer;padding:6px;display:flex;flex-direction:column;gap:4px;}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;}
+.title-box{flex:1;border:2px solid var(--cyan);border-radius:14px;padding:7px 14px;text-align:center;box-shadow:0 0 14px rgba(34,211,238,.12);}
+.title-box h1{font-size:14px;font-weight:900;letter-spacing:.08em;}
+.title-box h1 span{color:var(--cyan);}
+.title-box p{font-size:10px;color:var(--muted);margin-top:2px;}
+.modes-bar{display:flex;gap:2px;padding:4px 14px 6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.modes-bar::-webkit-scrollbar{display:none;}
+.mode-btn{border:none;background:var(--panel);color:var(--muted);font-size:11px;padding:5px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);}
+.mode-btn.active{background:var(--cyan);color:var(--bg);border-color:var(--cyan);}
+.chat-area{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);}
+.empty-state p{font-size:13px;}
+.msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55;word-wrap:break-word;}
+.msg.user{background:var(--cyan);color:#000;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500;}
+.msg.ai{background:var(--panel);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px;}
+.msg.ai .ai-label{font-size:10px;color:var(--cyan);font-weight:700;margin-bottom:4px;display:block;}
+.msg.error{background:#1a0a0a;border:1px solid var(--red);color:var(--red);align-self:flex-start;border-radius:14px;padding:10px 13px;}
+.typing{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;padding:12px 16px;display:flex;gap:5px;}
+.typing span{width:7px;height:7px;background:var(--muted);border-radius:50%;animation:bounce .9s infinite;}
+.typing span:nth-child(2){animation-delay:.15s;}
+.typing span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-6px);}}
+.email-gate{margin:12px 14px;background:var(--panel);border:1.5px solid var(--cyan);border-radius:16px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;}
+.email-gate.hidden{display:none!important;}
+.email-gate h3{font-size:15px;font-weight:700;}
+.email-gate p{font-size:12px;color:var(--muted);}
+.email-gate input{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);background:#0a1322;color:var(--text);font-size:14px;outline:none;}
+.email-gate input:focus{border-color:var(--cyan);}
+.email-gate button{width:100%;padding:12px;border-radius:10px;border:none;background:var(--cyan);color:#000;font-size:14px;font-weight:800;cursor:pointer;}
+.email-err{font-size:12px;color:var(--red);display:none;}
+.input-area{padding:8px 14px 14px;flex-shrink:0;}
+.input-row{display:flex;gap:8px;align-items:flex-end;background:var(--panel);border:1.5px solid var(--border);border-radius:24px;padding:8px 8px 8px 14px;}
+.input-row textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;resize:none;max-height:120px;min-height:22px;line-height:1.5;font-family:inherit;}
+.input-row textarea::placeholder{color:var(--muted);}
+.send-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--cyan);color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.send-btn:disabled{opacity:.35;cursor:default;}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;}
+.sidebar-overlay.open{display:block;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;background:var(--panel);border-right:1px solid var(--border);z-index:101;transform:translateX(-100%);transition:transform .25s;display:flex;flex-direction:column;padding:20px 16px;}
+.sidebar.open{transform:translateX(0);}
+.sidebar-title{font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:16px;}
+.sidebar-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:none;background:none;color:var(--text);font-size:13px;cursor:pointer;width:100%;text-align:left;}
+.sidebar-btn:hover{background:var(--panel2);}
+.sep{height:1px;background:var(--border);margin:8px 0;}
+.sidebar-info{padding:10px 12px;font-size:12px;color:var(--muted);}
+.sidebar-info strong{display:block;color:var(--text);font-size:13px;margin-bottom:2px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--panel);border:1.5px solid var(--border);border-radius:18px;width:100%;max-width:480px;padding:20px;margin:auto;}
+.modal h2{font-size:16px;font-weight:800;color:var(--cyan);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.form-lbl{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:700;margin-top:14px;}
+.form-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:#0a1322;color:var(--text);font-size:13px;outline:none;font-family:inherit;}
+.form-input:focus{border-color:var(--cyan);}
+.btn{padding:10px 16px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-cyan{background:var(--cyan);color:#000;}
+.btn-ghost{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+.key-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel2);border-radius:8px;margin-bottom:6px;font-size:12px;}
+.key-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--green);font-family:monospace;}
+.key-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;}
+.user-item{padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);}
+.hidden{display:none!important;}
+pre{white-space:pre-wrap;font-family:inherit;}
+.footer{text-align:center;font-size:10px;color:var(--muted);padding:4px 0 8px;flex-shrink:0;}
+
+/* ── ADMIN SCREEN ── */
+.admin-screen{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;flex-direction:column;}
+.admin-screen.hidden{display:none;}
+.admin-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.admin-back,.admin-close{background:transparent;border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.admin-back:hover,.admin-close:hover{border-color:var(--cyan);color:var(--cyan);}
+.admin-title{flex:1;font-size:14px;font-weight:800;letter-spacing:.04em;color:var(--cyan);}
+.admin-body{flex:1;overflow-y:auto;padding:14px 16px;}
+.admin-loading{font-size:13px;color:var(--muted);text-align:center;padding:30px 0;}
+.admin-stats{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.admin-user-card{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:8px;cursor:pointer;}
+.admin-user-card:hover{border-color:var(--cyan);}
+.admin-user-avatar{width:34px;height:34px;border-radius:50%;background:var(--panel2);border:1px solid var(--border);color:var(--cyan);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase;}
+.admin-user-info{flex:1;min-width:0;}
+.admin-user-email{font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.admin-user-meta{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.admin-session-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:8px;cursor:pointer;}
+.admin-session-card:hover{border-color:var(--cyan);}
+.admin-session-preview{font-size:12.5px;color:var(--text);margin-bottom:3px;}
+.admin-session-date{font-size:10.5px;color:var(--muted);}
+.admin-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
+.admin-tabs::-webkit-scrollbar{display:none;}
+.admin-tab-btn{flex-shrink:0;background:var(--panel);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;padding:8px 10px;border-radius:10px;cursor:pointer;}
+.admin-tab-btn.active{background:var(--cyan);color:var(--bg);border-color:var(--cyan);}
+.admin-stat-row{display:flex;gap:10px;margin-bottom:14px;}
+.admin-stat-card{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;}
+.admin-stat-num{font-size:20px;font-weight:900;color:var(--cyan);}
+.admin-stat-label{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.05em;}
+.admin-search-box{margin-bottom:14px;}
+.admin-search-box input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;}
+.admin-search-box input:focus{border-color:var(--cyan);}
+.admin-search-empty{font-size:12px;color:var(--muted);text-align:center;padding:14px 0;}
+.admin-new-banner{background:rgba(34,211,238,.1);border:1px solid var(--cyan);color:var(--cyan);font-size:12px;border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5;}
+.admin-persona-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;}
+.admin-persona-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.admin-persona-name{font-size:13px;font-weight:800;color:var(--text);}
+.admin-persona-key{font-size:9.5px;color:var(--muted);background:var(--panel2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;flex-shrink:0;}
+.admin-persona-preview{font-size:12px;color:var(--muted);line-height:1.5;}
+.admin-block-btn{background:transparent;border:none;font-size:15px;cursor:pointer;padding:2px 4px;flex-shrink:0;}
+.admin-user-card.is-blocked{border-color:#f87171;background:rgba(248,113,113,.06);}
+.admin-blocked-badge{background:#f87171;color:#1a0707;font-size:9px;font-weight:800;padding:2px 6px;border-radius:999px;margin-left:6px;text-transform:uppercase;vertical-align:middle;}
+.admin-broadcast-box{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.admin-broadcast-box textarea{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box;}
+.admin-broadcast-box textarea:focus{border-color:var(--cyan);}
+.admin-broadcast-box button{background:var(--cyan);color:var(--bg);border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;}
+.admin-broadcast-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:8px;}
+.admin-broadcast-text{font-size:13px;color:var(--text);line-height:1.5;margin-bottom:6px;white-space:pre-wrap;}
+.admin-broadcast-date{font-size:10.5px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;}
+.admin-broadcast-del{background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--muted);}
+.admin-img-req-card{background:var(--panel);border:1px solid #f59e0b55;border-radius:12px;padding:12px;margin-bottom:10px;}
+.admin-img-req-text{font-size:13px;color:var(--text);line-height:1.5;margin-bottom:6px;}
+.admin-img-req-meta{font-size:10.5px;color:var(--muted);margin-bottom:8px;}
+.admin-msg{margin-bottom:14px;}
+.admin-msg-role{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px;}
+.admin-msg-role.assistant{color:var(--muted);}
+.admin-msg-content{font-size:13px;line-height:1.55;color:var(--text);white-space:pre-wrap;}
+/* blocked screen */
+.blocked-screen{position:fixed;inset:0;background:var(--bg);z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;gap:14px;}
+.blocked-screen.hidden{display:none;}
+.blocked-title{font-size:18px;font-weight:800;color:#f87171;}
+.blocked-sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:300px;}
+.blocked-screen button{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:11px 22px;border-radius:10px;font-size:13px;cursor:pointer;}
+
+/* ── BARRE INSTALLATION PWA ── */
+.install-bar{position:fixed;bottom:0;left:0;right:0;background:#0e1626;border-top:1.5px solid #22d3ee44;padding:10px 16px;display:flex;align-items:center;gap:10px;z-index:500;transition:transform .3s;}
+.install-bar.hidden{transform:translateY(100%);}
+.install-bar-text{flex:1;font-size:12px;color:var(--text);}
+.install-bar-text strong{color:var(--cyan);display:block;font-size:13px;}
+.install-bar-btn{background:var(--cyan);color:#000;border:none;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.install-bar-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:0 4px;}
+
+/* ── INSTALL BAR ── */
+.install-bar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#0e1626,#121b2e);border-top:1.5px solid var(--cyan);padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:500;box-shadow:0 -4px 20px rgba(34,211,238,.15);}
+.install-bar.hidden{display:none!important;}
+.install-bar-icon{font-size:22px;flex-shrink:0;}
+.install-bar-text{flex:1;}
+.install-bar-title{font-size:13px;font-weight:800;color:var(--text);}
+.install-bar-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.install-bar-btn{background:var(--cyan);color:#000;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.install-bar-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1;}
+
+/* ── FILE ATTACH ── */
+.attach-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--panel2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;transition:all .15s;}
+.attach-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.file-preview{margin:0 14px 6px;display:flex;flex-wrap:wrap;gap:6px;}
+.file-preview.hidden{display:none!important;}
+.file-chip{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:12px;max-width:200px;}
+.file-chip-icon{font-size:16px;flex-shrink:0;}
+.file-chip-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+.file-chip-size{font-size:10px;color:var(--muted);flex-shrink:0;}
+.file-chip-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;line-height:1;flex-shrink:0;}
+.file-chip-del:hover{color:var(--red);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <button class="hamburger" id="menuBtn"><span></span><span></span><span></span></button>
+    <div class="title-box">
+      <h1><span>IA</span> TELECOMMUNICATION</h1>
+      <p>Cette IA peut vous répondre dans tous les domaines</p>
+    </div>
+  </div>
+
+  <div class="modes-bar">
+    <button class="mode-btn active" data-mode="cours">📚 Cours</button>
+    <button class="mode-btn" data-mode="revision">✏️ Révision</button>
+    <button class="mode-btn" data-mode="assistant">⚡ Assistant</button>
+    <button class="mode-btn" data-mode="quiz">🧪 Quiz</button>
+    <button class="mode-btn" data-mode="strict">🎯 Strict</button>
+    <button class="mode-btn" data-mode="fun">😄 Fun</button>
+  </div>
+
+  <div class="email-gate" id="emailGate">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    <h3>Entrez votre email pour commencer</h3>
+    <p>Pas de mot de passe — juste pour garder votre historique</p>
+    <input type="email" id="emailInput" placeholder="votre@email.com"/>
+    <button id="emailBtn">Continuer</button>
+    <span class="email-err" id="emailErr"></span>
+  </div>
+
+  <div class="chat-area" id="chatArea">
+    <div class="empty-state" id="emptyState">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <p>Posez votre question</p>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="file-preview hidden" id="filePreview"></div>
+    <div class="input-row">
+      <button class="attach-btn" id="attachBtn" title="Joindre un fichier">+</button>
+      <input type="file" id="fileInput" multiple accept="*/*" style="display:none"/>
+      <textarea id="msgInput" placeholder="Posez votre question..." rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="footer">Tsisalovanona Fandala &nbsp;·&nbsp; UDI</div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-title">⚡ IA TELECOM</div>
+  <div class="sidebar-info">
+    <strong id="sidebarEmail">Aucun compte</strong>
+    <span id="sidebarStatus">Non connecté</span>
+  </div>
+  <div class="sep"></div>
+  <button class="sidebar-btn" id="newChatBtn">🗑️ Nouvelle conversation</button>
+  <button class="sidebar-btn hidden" id="adminBtn">⚙️ Panel Admin</button>
+  <div class="sep"></div>
+  <button class="sidebar-btn" id="changeAccBtn">🔄 Changer de compte</button>
+</div>
+
+<!-- admin-screen géré séparément -->
+
+<!-- FIREBASE -->
+
+<!-- ADMIN SCREEN -->
+<div class="admin-screen hidden" id="admin-screen">
+  <div class="admin-header">
+    <button class="admin-back hidden" id="admin-back-btn">&#8592;</button>
+    <div class="admin-title" id="admin-title">Panel Admin</div>
+    <button class="admin-close" id="admin-close-btn">&times;</button>
+  </div>
+  <div class="admin-body" id="admin-body">
+    <div class="admin-loading">Chargement...</div>
+  </div>
+</div>
+
+<!-- BLOCKED SCREEN -->
+<div class="blocked-screen hidden" id="blocked-screen">
+  <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+  <div class="blocked-title">Accès bloqué</div>
+  <p class="blocked-sub">Votre accès a été suspendu par l'administrateur. Contactez le support.</p>
+  <button id="blocked-change-btn">Changer de compte</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:            "AIzaSyA6yOefs10hhtKVFLDpgLB_2SoM3DVp8l8",
+  authDomain:        "ia-telecom-558bd.firebaseapp.com",
+  projectId:         "ia-telecom-558bd",
+  storageBucket:     "ia-telecom-558bd.firebasestorage.app",
+  messagingSenderId: "366337225206",
+  appId:             "1:366337225206:web:478a46e1d3ddb01230d7d7"
+});
+const db = getFirestore(app);
+window._db = db;
+window._fs = { collection, doc, getDoc, getDocs, setDoc, addDoc, query, orderBy, serverTimestamp };
+window._dbOK = true;
+window.dispatchEvent(new Event("db-ready"));
+</script>
+
+<script>
+const ADMIN    = "tsisalovanonafandala@gmail.com";
+const EKEY     = "iaTelecomEmail_v2";
+const MODES    = {
+  cours:    "Tu es un professeur expert en télécommunications. Explique de façon claire, structurée et pédagogique. Utilise des exemples concrets.",
+  revision: "Tu es un assistant de révision. Aide à mémoriser, résume les points clés, pose des questions de contrôle.",
+  assistant:"Tu es un assistant IA polyvalent et intelligent. Réponds à TOUTES les questions clairement et utilement, comme Claude d'Anthropic.",
+  quiz:     "Tu es un examinateur. Génère des QCM ou questions ouvertes sur le sujet, puis corrige les réponses.",
+  strict:   "Tu es un professeur strict. Réponds uniquement aux sujets liés aux télécommunications et à l'ingénierie.",
+  fun:      "Tu es un assistant sympa et décontracté. Explique avec humour et exemples de la vie quotidienne."
+};
+
+let email    = localStorage.getItem(EKEY) || "";
+let mode     = "cours";
+let groqKeys = [];
+let kidx     = 0;
+let busy     = false;
+let msgs     = [];
+
+const $ = id => document.getElementById(id);
+const emailGate = $("emailGate");
+const emailInp  = $("emailInput");
+const emailBtn  = $("emailBtn");
+const emailErr  = $("emailErr");
+const chatArea  = $("chatArea");
+const emptyState= $("emptyState");
+const msgInp    = $("msgInput");
+const sendBtn   = $("sendBtn");
+const menuBtn   = $("menuBtn");
+const sidebar   = $("sidebar");
+const sidebarOv = $("sidebarOverlay");
+const sidebarEmail = $("sidebarEmail");
+const sidebarStatus= $("sidebarStatus");
+const adminBtn  = $("adminBtn");
+const newChatBtn= $("newChatBtn");
+const changeAccBtn=$("changeAccBtn");
+const adminModal= $("adminModal");
+const adminClose= $("adminClose");
+const keysList  = $("keysList");
+const newKeyInp = $("newKeyInput");
+const addKeyBtn = $("addKeyBtn");
+const usersList = $("usersList");
+const broadcastInp=$("broadcastInput");
+const broadcastBtn=$("broadcastBtn");
+
+// ── UI ──
+function updateUI(){
+  if(email){
+    emailGate.classList.add("hidden");
+    sidebarEmail.textContent = email;
+    sidebarStatus.textContent = "Connecté ✓";
+    sendBtn.disabled = false;
+    adminBtn.classList.toggle("hidden", email.toLowerCase() !== ADMIN.toLowerCase());
+    saveUser();
+  } else {
+    emailGate.classList.remove("hidden");
+    sidebarEmail.textContent = "Aucun compte";
+    sidebarStatus.textContent = "Non connecté";
+    sendBtn.disabled = true;
+    adminBtn.classList.add("hidden");
+  }
+}
+updateUI();
+
+// ── EMAIL ──
+emailBtn.onclick = () => {
+  const v = emailInp.value.trim();
+  emailErr.style.display = "none";
+  if(!v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
+    emailErr.textContent = "Email invalide.";
+    emailErr.style.display = "block";
+    return;
+  }
+  email = v;
+  localStorage.setItem(EKEY, v);
+  updateUI();
+};
+emailInp.onkeydown = e => { if(e.key==="Enter") emailBtn.click(); };
+
+// ── SIDEBAR ──
+menuBtn.onclick = () => { sidebar.classList.add("open"); sidebarOv.classList.add("open"); };
+function closeSidebar(){ sidebar.classList.remove("open"); sidebarOv.classList.remove("open"); }
+sidebarOv.onclick = closeSidebar;
+newChatBtn.onclick = () => { msgs=[]; chatArea.innerHTML=""; chatArea.appendChild(emptyState); emptyState.classList.remove("hidden"); closeSidebar(); };
+changeAccBtn.onclick = () => { localStorage.removeItem(EKEY); email=""; updateUI(); closeSidebar(); };
+
+// ── MODES ──
+document.querySelectorAll(".mode-btn").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll(".mode-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    mode = b.dataset.mode;
+  };
+});
+
+// ── ADMIN (géré plus bas) ──
+
+// ── CLÉS ──
+async function loadGroqKeys(){
+  if(!window._dbOK) return;
+  try{
+    const { doc, getDoc } = window._fs;
+    const snap = await getDoc(doc(window._db,"config","groq_keys"));
+    if(snap.exists()) groqKeys = (snap.data().keys||[]).filter(k=>k&&k.length>5);
+  }catch(e){ console.warn("loadGroqKeys:",e); }
+}
+
+function renderKeys(){
+  keysList.innerHTML = "";
+  if(!groqKeys.length){ keysList.innerHTML='<p style="font-size:12px;color:var(--muted);padding:8px 0;">Aucune clé. Ajoutez-en une.</p>'; return; }
+  groqKeys.forEach((k,i)=>{
+    const d=document.createElement("div"); d.className="key-item";
+    d.innerHTML=`<span class="key-text">${k.slice(0,10)}...${k.slice(-5)}</span><button class="key-del" onclick="delKey(${i})">🗑️</button>`;
+    keysList.appendChild(d);
+  });
+}
+
+addKeyBtn.onclick = async () => {
+  const k = newKeyInp.value.trim();
+  if(!k||k.length<8){ alert("Clé trop courte."); return; }
+  groqKeys.push(k); newKeyInp.value="";
+  await saveKeys(); renderKeys();
+};
+
+window.delKey = async i => { groqKeys.splice(i,1); await saveKeys(); renderKeys(); };
+
+async function saveKeys(){
+  if(!window._dbOK) return;
+  try{
+    const { doc, setDoc } = window._fs;
+    await setDoc(doc(window._db,"config","groq_keys"),{keys:groqKeys});
+  }catch(e){ alert("Erreur save: "+e.message); }
+}
+
+// ── UTILISATEURS ──
+async function saveUser(){
+  if(!window._dbOK||!email) return;
+  try{
+    const { doc, setDoc, serverTimestamp } = window._fs;
+    await setDoc(doc(window._db,"users",email),{email,lastSeen:serverTimestamp()},{merge:true});
+  }catch(e){}
+}
+
+async function loadUsers(){
+  usersList.innerHTML='<p class="user-item">Chargement...</p>';
+  if(!window._dbOK){ usersList.innerHTML='<p class="user-item">Firebase non disponible.</p>'; return; }
+  try{
+    const { collection, getDocs, query, orderBy } = window._fs;
+    const snap = await getDocs(query(collection(window._db,"users"),orderBy("lastSeen","desc")));
+    usersList.innerHTML="";
+    if(snap.empty){ usersList.innerHTML='<p class="user-item">Aucun utilisateur.</p>'; return; }
+    snap.forEach(d=>{ const p=document.createElement("p"); p.className="user-item"; p.textContent=d.data().email; usersList.appendChild(p); });
+  }catch(e){ usersList.innerHTML='<p class="user-item">Erreur: '+e.message+'</p>'; }
+}
+
+// ── BROADCAST ──
+broadcastBtn.onclick = async () => {
+  const msg = broadcastInp.value.trim();
+  if(!msg) return;
+  if(!window._dbOK){ alert("Firebase non disponible."); return; }
+  try{
+    const { collection, addDoc, serverTimestamp } = window._fs;
+    await addDoc(collection(window._db,"broadcasts"),{message:msg,date:serverTimestamp()});
+    broadcastInp.value=""; alert("✅ Message envoyé !");
+  }catch(e){ alert("Erreur: "+e.message); }
+};
+
+// ── INPUT ──
+msgInp.oninput = () => { msgInp.style.height="auto"; msgInp.style.height=Math.min(msgInp.scrollHeight,120)+"px"; };
+msgInp.onkeydown = e => { if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } };
+sendBtn.onclick = send;
+
+// ── CHAT ──
+function addMsg(role, text){
+  emptyState.classList.add("hidden");
+  const d = document.createElement("div");
+  d.className = "msg "+role;
+  if(role==="ai"){
+    d.innerHTML = `<span class="ai-label">IA TELECOM</span><pre>${esc(text)}</pre>`;
+  } else if(role==="error"){
+    d.innerHTML = "⚠️ "+esc(text);
+  } else {
+    d.textContent = text;
+  }
+  chatArea.appendChild(d);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function showTyping(){
+  emptyState.classList.add("hidden");
+  const d=document.createElement("div"); d.className="typing"; d.id="typing";
+  d.innerHTML="<span></span><span></span><span></span>";
+  chatArea.appendChild(d); chatArea.scrollTop=chatArea.scrollHeight;
+}
+function hideTyping(){ const t=$("typing"); if(t) t.remove(); }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+async function send(){
+  if(busy||!email) return;
+  const text = msgInp.value.trim();
+  if(!text && !attachedFiles.length) return;
+  
+  const userText = text || "Analyse ce fichier.";
+  const fileCtx  = buildFileContext();
+  const fullText = userText + fileCtx;
+
+  // Afficher message utilisateur avec noms des fichiers
+  let displayText = userText;
+  if(attachedFiles.length) displayText += "\n" + attachedFiles.map(f=>fileIcon(f.type,f.name)+" "+f.name).join("  ");
+  
+  msgInp.value=""; msgInp.style.height="auto";
+  addMsg("user", displayText);
+  msgs.push({role:"user", content:fullText});
+
+  // Vider les fichiers après envoi
+  const sentFiles = [...attachedFiles];
+  attachedFiles = []; renderFilePreview();
+
+  if(!groqKeys.length){
+    addMsg("error","Aucune clé Groq configurée. Ouvrez le menu → Panel Admin → ajoutez une clé Groq.");
+    return;
+  }
+
+  busy=true; sendBtn.disabled=true; showTyping();
+
+  try{
+    // Si image → utiliser modèle vision
+    const hasImage = sentFiles.some(f => f.content.type==="image");
+    const visionMsgs = hasImage ? buildImageMessages(msgs) : null;
+    const model = hasImage ? "meta-llama/llama-4-scout-17b-16e-instruct" : null;
+    const reply = await callGroq(MODES[mode]||MODES.assistant, visionMsgs||msgs, model);
+    hideTyping();
+    addMsg("ai", reply);
+    msgs.push({role:"assistant", content:reply});
+    saveConv(userText, reply);
+  }catch(e){
+    hideTyping();
+    addMsg("error", e.message||"Erreur réseau. Vérifiez votre connexion.");
+  }
+
+  busy=false; sendBtn.disabled=false;
+}
+
+async function callGroq(system, history, forceModel=null){
+  const total = groqKeys.length;
+  for(let i=0; i<total; i++){
+    const key = groqKeys[kidx % total]; kidx++;
+    try{
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+        body:JSON.stringify({
+          model: forceModel || "llama3-70b-8192",
+          messages:[{role:"system",content:system},...history.slice(-12)],
+          max_tokens:1500,
+          temperature:0.7
+        })
+      });
+      if(!res.ok){
+        const err=await res.json().catch(()=>({}));
+        if(res.status===429||res.status===401) continue;
+        throw new Error(err.error?.message||"Erreur "+res.status);
+      }
+      const data=await res.json();
+      return data.choices[0].message.content;
+    }catch(e){
+      if(i===total-1) throw e;
+    }
+  }
+  throw new Error("Toutes les clés Groq sont épuisées.");
+}
+
+async function saveConv(u, a){
+  if(!window._dbOK||!email) return;
+  try{
+    const { collection, addDoc, serverTimestamp } = window._fs;
+    await addDoc(collection(window._db,"conversations"),{email,userMessage:u,aiMessage:a,mode,date:serverTimestamp()});
+  }catch(e){}
+}
+
+
+// ── ADMIN ──
+const adminScreen  = document.getElementById("admin-screen");
+const adminBackBtn = document.getElementById("admin-back-btn");
+const adminCloseBtn= document.getElementById("admin-close-btn");
+const adminTitleEl = document.getElementById("admin-title");
+const adminBody    = document.getElementById("admin-body");
+const blockedScreen= document.getElementById("blocked-screen");
+
+adminCloseBtn.onclick = () => adminScreen.classList.add("hidden");
+document.getElementById("blocked-change-btn").onclick = () => {
+  localStorage.removeItem(EKEY); email=""; blockedScreen.classList.add("hidden"); updateUI();
+};
+
+// Ouvrir admin
+function openAdmin(){
+  if(email.toLowerCase() !== ADMIN.toLowerCase()) return;
+  adminScreen.classList.remove("hidden");
+  loadAdminUsers();
+}
+adminBtn.onclick = () => { closeSidebar(); openAdmin(); };
+
+// Vérifier si bloqué
+async function checkBlocked(){
+  if(!email || !window._dbOK) return;
+  try {
+    const { doc, getDoc } = window._fs;
+    const snap = await getDoc(doc(window._db, "blocked_users", email.toLowerCase()));
+    if(snap.exists() && snap.data().blocked){
+      blockedScreen.classList.remove("hidden");
+    }
+  } catch(e){}
+}
+
+// Onglets admin
+function renderAdminTabs(active){
+  return `<div class="admin-tabs">
+    <button class="admin-tab-btn ${active==="users"?"active":""}" data-tab="users">👥 Utilisateurs</button>
+    <button class="admin-tab-btn ${active==="broadcast"?"active":""}" data-tab="broadcast">📢 Diffusion</button>
+    <button class="admin-tab-btn ${active==="apikeys"?"active":""}" data-tab="apikeys">🔑 Clés API</button>
+  </div>`;
+}
+function bindAdminTabs(){
+  adminBody.querySelectorAll(".admin-tab-btn").forEach(b => {
+    b.onclick = () => {
+      if(b.dataset.tab==="users") loadAdminUsers();
+      else if(b.dataset.tab==="broadcast") loadAdminBroadcast();
+      else if(b.dataset.tab==="apikeys") loadAdminApiKeys();
+    };
+  });
+}
+
+// ── Onglet Utilisateurs ──
+async function loadAdminUsers(){
+  adminBackBtn.classList.add("hidden");
+  adminTitleEl.textContent = "Panel Admin";
+  adminBody.innerHTML = renderAdminTabs("users") + `<div class="admin-search-box"><input id="admin-search" placeholder="Rechercher un email..."/></div><div id="admin-users-list"><div class="admin-loading">Chargement...</div></div>`;
+  bindAdminTabs();
+  if(!window._dbOK){ document.getElementById("admin-users-list").innerHTML='<div class="admin-loading">Firebase non disponible.</div>'; return; }
+  try {
+    const { collection, getDocs, query, orderBy } = window._fs;
+    const snap = await getDocs(query(collection(window._db,"users"), orderBy("lastSeen","desc")));
+    // Charger aussi les bloqués
+    const blockedSnap = await getDocs(collection(window._db,"blocked_users")).catch(()=>({docs:[]}));
+    const blockedSet = new Set(blockedSnap.docs.filter(d=>d.data().blocked).map(d=>d.id));
+    let users = [];
+    snap.forEach(d => users.push({id:d.id, data:d.data()}));
+    renderAdminUsersList(users, blockedSet);
+    // Recherche
+    document.getElementById("admin-search").oninput = e => {
+      const q = e.target.value.toLowerCase();
+      renderAdminUsersList(users.filter(u=>u.id.includes(q)), blockedSet);
+    };
+    // Stats
+    const statHtml = `<div class="admin-stat-row"><div class="admin-stat-card"><div class="admin-stat-num">${users.length}</div><div class="admin-stat-label">Utilisateurs</div></div><div class="admin-stat-card"><div class="admin-stat-num">${blockedSet.size}</div><div class="admin-stat-label">Bloqués</div></div></div>`;
+    adminBody.insertAdjacentHTML("afterbegin", statHtml + renderAdminTabs("users") + `<div class="admin-search-box"><input id="admin-search" placeholder="Rechercher un email..."/></div>`);
+    adminBody.querySelector(".admin-stat-row") && adminBody.querySelectorAll(".admin-tabs")[0]?.remove();
+    adminBody.querySelectorAll(".admin-search-box")[1]?.remove();
+  } catch(e){ document.getElementById("admin-users-list").innerHTML=`<div class="admin-loading">Erreur: ${e.message}</div>`; }
+}
+
+function renderAdminUsersList(users, blockedSet){
+  const list = document.getElementById("admin-users-list");
+  if(!list) return;
+  if(!users.length){ list.innerHTML='<div class="admin-search-empty">Aucun utilisateur trouvé.</div>'; return; }
+  list.innerHTML = users.map(u => {
+    const blocked = blockedSet.has(u.id);
+    const lastSeen = u.data.lastSeen?.toDate?.();
+    const dateStr = lastSeen ? lastSeen.toLocaleDateString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}) : "—";
+    return `<div class="admin-user-card ${blocked?"is-blocked":""}" data-email="${u.id}">
+      <div class="admin-user-avatar">${u.id[0].toUpperCase()}</div>
+      <div class="admin-user-info">
+        <div class="admin-user-email">${u.id}${blocked?'<span class="admin-blocked-badge">bloqué</span>':''}</div>
+        <div class="admin-user-meta">Vu : ${dateStr}</div>
+      </div>
+      <button class="admin-block-btn" data-email="${u.id}" data-blocked="${blocked}" title="${blocked?"Débloquer":"Bloquer"}">${blocked?"🔓":"🚫"}</button>
+    </div>`;
+  }).join("");
+  list.querySelectorAll(".admin-block-btn").forEach(btn => {
+    btn.onclick = async e => {
+      e.stopPropagation();
+      const em = btn.dataset.email;
+      const wasBlocked = btn.dataset.blocked === "true";
+      try {
+        const { doc, setDoc, deleteDoc } = window._fs;
+        if(wasBlocked){ await deleteDoc(doc(window._db,"blocked_users",em)); blockedSet.delete(em); }
+        else { await setDoc(doc(window._db,"blocked_users",em),{blocked:true,email:em}); blockedSet.add(em); }
+        renderAdminUsersList(users, blockedSet);
+      } catch(err){ alert("Erreur: "+err.message); }
+    };
+  });
+}
+
+// ── Onglet Broadcast ──
+function loadAdminBroadcast(){
+  adminBackBtn.classList.add("hidden");
+  adminTitleEl.textContent = "📢 Diffusion";
+  adminBody.innerHTML = renderAdminTabs("broadcast") + `
+    <div class="admin-broadcast-box">
+      <textarea id="broadcast-txt" rows="4" placeholder="Message à envoyer à tous les utilisateurs..."></textarea>
+      <button id="broadcast-send-btn">📢 Envoyer à tous</button>
+    </div>
+    <div id="broadcast-history"></div>`;
+  bindAdminTabs();
+  document.getElementById("broadcast-send-btn").onclick = async () => {
+    const msg = document.getElementById("broadcast-txt").value.trim();
+    if(!msg) return;
+    try {
+      const { collection, addDoc, serverTimestamp } = window._fs;
+      await addDoc(collection(window._db,"broadcasts"),{message:msg,date:serverTimestamp()});
+      document.getElementById("broadcast-txt").value = "";
+      alert("✅ Message envoyé !");
+      loadBroadcastHistory();
+    } catch(e){ alert("Erreur: "+e.message); }
+  };
+  loadBroadcastHistory();
+}
+
+async function loadBroadcastHistory(){
+  const hist = document.getElementById("broadcast-history");
+  if(!hist) return;
+  hist.innerHTML = '<div class="admin-loading">Chargement...</div>';
+  try {
+    const { collection, getDocs, query, orderBy, deleteDoc, doc } = window._fs;
+    const snap = await getDocs(query(collection(window._db,"broadcasts"),orderBy("date","desc")));
+    if(snap.empty){ hist.innerHTML='<div class="admin-loading">Aucun message.</div>'; return; }
+    hist.innerHTML = "";
+    snap.forEach(d => {
+      const date = d.data().date?.toDate?.();
+      const dateStr = date ? date.toLocaleDateString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}) : "—";
+      const div = document.createElement("div"); div.className="admin-broadcast-card";
+      div.innerHTML = `<div class="admin-broadcast-text">${esc(d.data().message||"")}</div>
+        <div class="admin-broadcast-date"><span>${dateStr}</span>
+        <button class="admin-broadcast-del" data-id="${d.id}">🗑️</button></div>`;
+      div.querySelector(".admin-broadcast-del").onclick = async () => {
+        await deleteDoc(doc(window._db,"broadcasts",d.id)).catch(()=>{});
+        div.remove();
+      };
+      hist.appendChild(div);
+    });
+  } catch(e){ hist.innerHTML=`<div class="admin-loading">Erreur: ${e.message}</div>`; }
+}
+
+// ── Onglet Clés API ──
+async function loadAdminApiKeys(){
+  adminBackBtn.classList.add("hidden");
+  adminTitleEl.textContent = "🔑 Clés API";
+  adminBody.innerHTML = renderAdminTabs("apikeys") + '<div class="admin-loading">Chargement...</div>';
+  bindAdminTabs();
+  let gKeys=[], iKeys=[];
+  if(window._dbOK){
+    try {
+      const { doc, getDoc } = window._fs;
+      const s1 = await getDoc(doc(window._db,"config","groq_keys"));
+      if(s1.exists()) gKeys = s1.data().keys||[];
+      const s2 = await getDoc(doc(window._db,"config","gemini_keys"));
+      if(s2.exists()) iKeys = s2.data().keys||[];
+    } catch(e){}
+  }
+  renderApiKeysUI(gKeys, iKeys);
+}
+
+function renderApiKeysUI(gKeys, iKeys){
+  const mask = k => k.length>12 ? k.slice(0,8)+"••••"+k.slice(-4) : k;
+  let html = renderAdminTabs("apikeys");
+  html += `<div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Clés stockées dans Firestore — <strong style="color:var(--cyan)">invisibles dans le code source</strong>.</div>`;
+  
+  // Groq
+  html += `<div style="font-size:13px;font-weight:800;color:var(--cyan);margin-bottom:8px;">⚡ Clés Groq (${gKeys.length})</div>`;
+  if(!gKeys.length) html += `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Aucune clé Groq.</div>`;
+  gKeys.forEach((k,i) => {
+    html += `<div style="display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;">
+      <span style="flex:1;font-family:monospace;font-size:12px;color:var(--cyan);">${mask(k)}</span>
+      <span style="font-size:10px;color:var(--muted);">Groq ${i+1}</span>
+      <button class="del-groq-btn" data-idx="${i}" style="background:transparent;border:none;font-size:15px;cursor:pointer;color:var(--muted);">🗑️</button>
+    </div>`;
+  });
+  html += `<div style="display:flex;gap:8px;margin-top:6px;">
+    <input id="new-groq-input" type="text" placeholder="gsk_..." style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:monospace;outline:none;"/>
+    <button id="add-groq-btn" style="background:var(--cyan);color:var(--bg);border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;">Ajouter</button>
+  </div>
+  <div id="groq-msg" style="font-size:11px;margin-top:6px;min-height:14px;"></div>
+  <div style="border-top:1px solid var(--border);margin:16px 0;"></div>`;
+
+  // Image keys
+  const pLabel = k => {
+    if(k.startsWith("AIza")) return {label:"Gemini",color:"#4ade80"};
+    if(k.startsWith("hf_")) return {label:"HuggingFace",color:"#f59e0b"};
+    if(k.startsWith("r8_")) return {label:"Replicate",color:"#a78bfa"};
+    return {label:"Autre",color:"var(--muted)"};
+  };
+  html += `<div style="font-size:13px;font-weight:800;color:#f59e0b;margin-bottom:8px;">🎨 Clés Images (${iKeys.length})</div>`;
+  if(!iKeys.length) html += `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Aucune clé image.</div>`;
+  iKeys.forEach((k,i) => {
+    const {label,color} = pLabel(k);
+    html += `<div style="display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid #f59e0b44;border-radius:10px;padding:10px 12px;margin-bottom:6px;">
+      <span style="flex:1;font-family:monospace;font-size:12px;color:#f59e0b;">${mask(k)}</span>
+      <span style="font-size:10px;font-weight:700;color:${color};">${label}</span>
+      <button class="del-img-btn" data-idx="${i}" style="background:transparent;border:none;font-size:15px;cursor:pointer;color:var(--muted);">🗑️</button>
+    </div>`;
+  });
+  html += `<div style="display:flex;gap:8px;margin-top:6px;">
+    <input id="new-img-input" type="text" placeholder="AIza... hf_... r8_..." style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:monospace;outline:none;"/>
+    <button id="add-img-btn" style="background:#f59e0b;color:#1a0e00;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;">Ajouter</button>
+  </div>
+  <div id="img-msg" style="font-size:11px;margin-top:6px;min-height:14px;"></div>`;
+
+  adminBody.innerHTML = html;
+  bindAdminTabs();
+
+  // Events Groq
+  adminBody.querySelectorAll(".del-groq-btn").forEach(btn => {
+    btn.onclick = async () => {
+      if(!confirm("Supprimer cette clé ?")) return;
+      const up=[...gKeys]; up.splice(+btn.dataset.idx,1);
+      if(await saveGroqKeys(up)){ gKeys=up; renderApiKeysUI(gKeys,iKeys); }
+    };
+  });
+  document.getElementById("add-groq-btn").onclick = async () => {
+    const v=document.getElementById("new-groq-input").value.trim();
+    const m=document.getElementById("groq-msg");
+    if(!v||v.length<8){m.style.color="#f44747";m.textContent="❌ Clé invalide";return;}
+    if(gKeys.includes(v)){m.style.color="#f59e0b";m.textContent="⚠️ Déjà présente";return;}
+    m.style.color="var(--cyan)";m.textContent="⏳...";
+    const up=[...gKeys,v];
+    if(await saveGroqKeys(up)){gKeys=up;renderApiKeysUI(gKeys,iKeys);}
+    else{m.style.color="#f44747";m.textContent="❌ Erreur";}
+  };
+
+  // Events Image
+  adminBody.querySelectorAll(".del-img-btn").forEach(btn => {
+    btn.onclick = async () => {
+      if(!confirm("Supprimer cette clé ?")) return;
+      const up=[...iKeys]; up.splice(+btn.dataset.idx,1);
+      if(await saveImgKeys(up)){ iKeys=up; renderApiKeysUI(gKeys,iKeys); }
+    };
+  });
+  document.getElementById("add-img-btn").onclick = async () => {
+    const v=document.getElementById("new-img-input").value.trim();
+    const m=document.getElementById("img-msg");
+    if(!v||v.length<8){m.style.color="#f44747";m.textContent="❌ Clé invalide";return;}
+    m.style.color="#f59e0b";m.textContent="⏳...";
+    const up=[...iKeys,v];
+    if(await saveImgKeys(up)){iKeys=up;renderApiKeysUI(gKeys,iKeys);}
+    else{m.style.color="#f44747";m.textContent="❌ Erreur";}
+  };
+}
+
+async function saveGroqKeys(keys){
+  if(!window._dbOK) return false;
+  try {
+    const { doc, setDoc } = window._fs;
+    await setDoc(doc(window._db,"config","groq_keys"),{keys});
+    groqKeys = keys.filter(k=>k&&k.trim().length>5); kidx=0;
+    return true;
+  } catch(e){ return false; }
+}
+async function saveImgKeys(keys){
+  if(!window._dbOK) return false;
+  try {
+    const { doc, setDoc } = window._fs;
+    await setDoc(doc(window._db,"config","gemini_keys"),{keys});
+    return true;
+  } catch(e){ return false; }
+}
+
+
+// ── INSTALLATION PWA ──
+let deferredInstall = null;
+const installBar     = document.getElementById("installBar");
+const installBarBtn  = document.getElementById("installBarBtn");
+const installBarClose= document.getElementById("installBarClose");
+
+function isPWAInstalled(){
+  return window.matchMedia("(display-mode: standalone)").matches
+    || window.navigator.standalone === true
+    || localStorage.getItem("pwaInstalled") === "1";
+}
+
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredInstall = e;
+  if(!isPWAInstalled()){
+    setTimeout(() => installBar.classList.remove("hidden"), 3000);
+  }
+});
+
+installBarBtn.onclick = async () => {
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  const { outcome } = await deferredInstall.userChoice;
+  if(outcome === "accepted"){
+    localStorage.setItem("pwaInstalled","1");
+    installBar.classList.add("hidden");
+  }
+  deferredInstall = null;
+};
+
+installBarClose.onclick = () => {
+  installBar.classList.add("hidden");
+  localStorage.setItem("pwaInstalled","1");
+};
+
+window.addEventListener("appinstalled", () => {
+  localStorage.setItem("pwaInstalled","1");
+  installBar.classList.add("hidden");
+});
+
+
+// ── INSTALL BAR ──
+(function(){
+  const bar     = document.getElementById("installBar");
+  const btn     = document.getElementById("installBarBtn");
+  const closeBtn= document.getElementById("installBarClose");
+  let deferredPrompt = null;
+
+  function isPWA(){
+    return window.matchMedia("(display-mode: standalone)").matches
+        || window.navigator.standalone === true
+        || localStorage.getItem("pwaInstalled") === "1";
+  }
+
+  if(isPWA()){ bar.classList.add("hidden"); return; }
+
+  // Attendre le prompt d'installation du navigateur
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    bar.classList.remove("hidden");
+  });
+
+  // Clic sur Installer
+  btn.onclick = async () => {
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if(outcome === "accepted"){
+        localStorage.setItem("pwaInstalled","1");
+        bar.classList.add("hidden");
+      }
+      deferredPrompt = null;
+    } else {
+      // iOS/Safari — pas de prompt natif, afficher instructions
+      alert("Pour installer :\n\niOS Safari : Appuyez sur ⬆️ puis \"Sur l'écran d'accueil\"\n\nAndroid Chrome : Menu ⋮ → \"Ajouter à l'écran d'accueil\"");
+    }
+  };
+
+  // Fermer la barre (ne plus afficher pendant cette session)
+  closeBtn.onclick = () => {
+    bar.classList.add("hidden");
+    sessionStorage.setItem("installBarDismissed","1");
+  };
+
+  // Si déjà fermé cette session, ne pas réafficher
+  if(sessionStorage.getItem("installBarDismissed")==="1"){
+    bar.classList.add("hidden");
+  }
+
+  // Marquer comme installé
+  window.addEventListener("appinstalled", () => {
+    localStorage.setItem("pwaInstalled","1");
+    bar.classList.add("hidden");
+  });
+})();
+
+
+// ── FICHIERS ATTACHÉS ──
+const attachBtn  = document.getElementById("attachBtn");
+const fileInput  = document.getElementById("fileInput");
+const filePreview= document.getElementById("filePreview");
+let attachedFiles = []; // [{file, name, size, type, content}]
+
+attachBtn.onclick = () => fileInput.click();
+
+fileInput.onchange = async () => {
+  const files = Array.from(fileInput.files);
+  for(const file of files){
+    const content = await readFile(file);
+    attachedFiles.push({file, name:file.name, size:file.size, type:file.type, content});
+  }
+  fileInput.value = "";
+  renderFilePreview();
+};
+
+function fileIcon(type, name){
+  const ext = name.split(".").pop().toLowerCase();
+  if(type.startsWith("image/")) return "🖼️";
+  if(ext==="pdf") return "📄";
+  if(["doc","docx"].includes(ext)) return "📝";
+  if(["ppt","pptx"].includes(ext)) return "📊";
+  if(["xls","xlsx"].includes(ext)) return "📈";
+  if(["html","htm"].includes(ext)) return "🌐";
+  if(["js","ts","py","java","c","cpp","css"].includes(ext)) return "💻";
+  if(["txt","md"].includes(ext)) return "📃";
+  if(["zip","rar","7z"].includes(ext)) return "📦";
+  if(["mp3","wav","ogg"].includes(ext)) return "🎵";
+  if(["mp4","avi","mov"].includes(ext)) return "🎬";
+  return "📎";
+}
+
+function formatSize(bytes){
+  if(bytes < 1024) return bytes+"B";
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1)+"KB";
+  return (bytes/(1024*1024)).toFixed(1)+"MB";
+}
+
+function renderFilePreview(){
+  if(!attachedFiles.length){ filePreview.classList.add("hidden"); return; }
+  filePreview.classList.remove("hidden");
+  filePreview.innerHTML = attachedFiles.map((f,i) => `
+    <div class="file-chip">
+      <span class="file-chip-icon">${fileIcon(f.type, f.name)}</span>
+      <span class="file-chip-name">${esc(f.name)}</span>
+      <span class="file-chip-size">${formatSize(f.size)}</span>
+      <button class="file-chip-del" onclick="removeFile(${i})">×</button>
+    </div>`).join("");
+}
+
+window.removeFile = i => { attachedFiles.splice(i,1); renderFilePreview(); };
+
+async function readFile(file){
+  return new Promise(resolve => {
+    const ext = file.name.split(".").pop().toLowerCase();
+    // Images → base64
+    if(file.type.startsWith("image/")){
+      const r = new FileReader();
+      r.onload = e => resolve({type:"image", data:e.target.result, mimeType:file.type});
+      r.readAsDataURL(file);
+      return;
+    }
+    // Texte, HTML, code, CSV, JSON, XML → texte brut
+    if(file.type.startsWith("text/") || ["html","htm","css","js","ts","py","java","c","cpp","json","xml","csv","md","txt","log"].includes(ext)){
+      const r = new FileReader();
+      r.onload = e => resolve({type:"text", data:e.target.result});
+      r.readAsText(file);
+      return;
+    }
+    // PDF → texte via FileReader (basique)
+    if(ext === "pdf"){
+      const r = new FileReader();
+      r.onload = e => resolve({type:"pdf_base64", data:e.target.result});
+      r.readAsDataURL(file);
+      return;
+    }
+    // Autres (docx, pptx, xlsx, zip...) → base64 avec avertissement
+    const r = new FileReader();
+    r.onload = e => resolve({type:"binary", data:e.target.result, ext});
+    r.readAsDataURL(file);
+  });
+}
+
+function buildFileContext(){
+  if(!attachedFiles.length) return "";
+  let ctx = "\n\n--- FICHIERS JOINTS ---\n";
+  attachedFiles.forEach(f => {
+    ctx += `\n📎 Fichier: ${f.name} (${formatSize(f.size)})\n`;
+    if(f.content.type === "text"){
+      const preview = f.content.data.length > 8000 ? f.content.data.slice(0,8000)+"\n...[tronqué]" : f.content.data;
+      ctx += `Contenu:\n\`\`\`\n${preview}\n\`\`\`\n`;
+    } else if(f.content.type === "image"){
+      ctx += `[Image jointe — analysée séparément]\n`;
+    } else if(f.content.type === "pdf_base64"){
+      ctx += `[Fichier PDF — veuillez décrire son contenu ou copier le texte à analyser]\n`;
+    } else {
+      ctx += `[Fichier binaire ${f.content.ext?.toUpperCase()||""} — format non lisible directement. Décrivez ce que vous voulez analyser.]\n`;
+    }
+  });
+  ctx += "--- FIN FICHIERS ---\n";
+  return ctx;
+}
+
+function buildImageMessages(baseMessages){
+  // Si image jointe, construire message multimodal pour Groq vision
+  const images = attachedFiles.filter(f => f.content.type === "image");
+  if(!images.length) return null;
+  // Groq supporte vision avec llama-3.2-11b-vision
+  const lastUser = baseMessages[baseMessages.length-1];
+  const content = [
+    {type:"text", text: lastUser.content},
+    ...images.map(f => ({type:"image_url", image_url:{url: f.content.data}}))
+  ];
+  return [...baseMessages.slice(0,-1), {role:"user", content}];
+}
+
+// ── INIT ──
+window.addEventListener("db-ready", loadGroqKeys);
+if(window._dbOK) loadGroqKeys();
+</script>
+
+<script>
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+
+<!-- BARRE INSTALLATION PWA -->
+<div class="install-bar hidden" id="installBar">
+  <div class="install-bar-text">
+    <strong>📲 Installer l'application</strong>
+    Accès rapide depuis votre écran d'accueil
+  </div>
+  <button class="install-bar-btn" id="installBarBtn">Installer</button>
+  <button class="install-bar-close" id="installBarClose">×</button>
+</div>
+
+
+<!-- INSTALL BAR -->
+<div class="install-bar hidden" id="installBar">
+  <div class="install-bar-icon">📲</div>
+  <div class="install-bar-text">
+    <div class="install-bar-title">Installer l'application</div>
+    <div class="install-bar-sub">Accès rapide, mode hors ligne</div>
+  </div>
+  <button class="install-bar-btn" id="installBarBtn">Installer</button>
+  <button class="install-bar-close" id="installBarClose">&times;</button>
+</div>
+</body>
+</html>
